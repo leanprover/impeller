@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
+from impeller.sandbox import get_sandbox
 
 
 class Args:
@@ -43,7 +44,12 @@ def main():
         help="configure bubblewrap for use on NixOS",
     )
     args = parser.parse_args(namespace=Args())
-    print(args)
+
+    box = get_sandbox(
+        repo=args.repo,
+        bubblewrap=args.bubblewrap,
+        bubblewrap_nixos=args.bubblewrap_nixos,
+    )
 
 
 if __name__ == "__main__":
