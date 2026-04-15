@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
+from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import get_sandbox
+from impeller.util import clone_and_prepare_repo, install_toolchain
 
 
 class Args:
@@ -50,6 +52,17 @@ def main():
         bubblewrap=args.bubblewrap,
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
+
+    if args.url:
+        clone_and_prepare_repo(repo=args.repo, url=args.url)
+    install_toolchain(repo=args.repo)
+
+    config_json = box.run_stdout("lake", "reservoir-config")
+    config = ReservoirConfig.parse(config_json)
+
+    # TODO Fetch metadata from GitHub
+
+    print(config.dump())
 
 
 if __name__ == "__main__":
