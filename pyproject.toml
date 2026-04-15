@@ -1,0 +1,7 @@
+[project]
+name = "impeller"
+version = "0.0.0"
+description = "Analyze and build lake projects"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
