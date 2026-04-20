@@ -29,17 +29,19 @@ def as_list_of[T](as_func: Callable[[Any], T], value: Any) -> list[T]:
 
 @dataclass
 class ReservoirConfig:
+    # Global
     description: str
     do_index: bool
     homepage: str
     keywords: list[str]
-    license: str
-    license_files: list[str]
     name: str
     platform_independent: bool | None
+    version_tags: list[str]
+    # Version-specific
+    license: str
+    license_files: list[str]
     readme_file: str
     version: str
-    version_tags: list[str]
 
     @classmethod
     def parse(cls, json_str: str) -> Self:
