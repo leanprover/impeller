@@ -1,17 +1,114 @@
+import json
+import re
 from argparse import ArgumentParser
 from pathlib import Path
+from typing import Any
 
+from github import Auth, Github
+
+from impeller import util
 from impeller.reservoir_config import ReservoirConfig
-from impeller.sandbox import get_sandbox
+from impeller.sandbox import Sandbox, get_sandbox
 from impeller.util import clone_and_prepare_repo, install_toolchain
 
 
 class Args:
     repo: Path
     url: str | None
-    infer_metadata: bool
+    fetch_external_metadata: bool
+    github_token_file: Path | None
+    github_token_gh: bool
     bubblewrap: bool
     bubblewrap_nixos: bool
+
+
+def fetch_lake_metadata(box: Sandbox) -> dict[str, Any]:
+    config_json = box.run_stdout("lake", "reservoir-config")
+    config = ReservoirConfig.parse(config_json)
+
+    # Only the global fields, not the version-specific ones
+    return {
+        "description": config.description,
+        "do_index": config.do_index,
+        "homepage": config.homepage,
+        "keywords": config.keywords,
+        "name": config.name,
+        "platform_independent": config.platform_independent,
+        "version_tags": config.version_tags,
+    }
+
+
+def get_github_token(args: Args) -> str | None:
+    if args.github_token_gh:
+        return util.run_stdout("gh", "auth", "token").strip()
+    if args.github_token_file:
+        return args.github_token_file.read_text().strip()
+
+
+def get_github_fullname(args: Args) -> str | None:
+    if args.url is None:
+        return
+    match = re.fullmatch(
+        r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)"
+        r"([^/]+/[^/.]+?)(?:\.git)?/?",
+        args.url,
+    )
+    if not match:
+        return
+    fullname: str = match.group(1)
+    return fullname
+
+
+def fetch_github_metadata(args: Args) -> dict[str, Any] | None:
+    if not args.fetch_external_metadata:
+        return
+
+    token = get_github_token(args)
+    if not token:
+        return
+
+    fullname = get_github_fullname(args)
+    if not fullname:
+        return
+
+    g = Github(auth=Auth.Token(token))
+    r = g.get_repo(fullname)
+
+    # A reasonable subset of the fields returned by the GitHub API
+    # https://docs.github.com/en/rest/repos/repos?apiVersion=2026-03-10#get-a-repository
+    return {
+        "name": r.name,
+        "full_name": r.full_name,
+        "owner": r.owner.login,
+        "description": r.description,
+        "fork": r.fork,
+        "html_url": r.html_url,
+        "clone_url": r.clone_url,
+        "homepage": r.homepage,
+        "forks_count": r.forks_count,
+        "stargazers_count": r.stargazers_count,
+        "watchers_count": r.watchers_count,
+        "default_branch": r.default_branch,
+        "topics": r.topics,
+        "archived": r.archived,
+        "disabled:": r.disabled,
+        "pushed_at": r.pushed_at.isoformat(),
+        "created_at": r.created_at.isoformat(),
+        "updated_at": r.updated_at.isoformat(),
+        "license": r.license,
+    }
+
+
+def merge_metadata(
+    lake: dict[str, Any], github: dict[str, Any] | None
+) -> dict[str, Any]:
+    github = github or {}
+
+    data = dict(lake)
+    data["description"] = data.get("description", github.get("description"))
+    data["homepage"] = data.get("homepage", github.get("homepage"))
+    data["topics"] = data.get("topics", github.get("topics"))
+    return data
 
 
 def main():
@@ -29,9 +126,21 @@ def main():
     )
     parser.add_argument(
         "-m",
-        "--infer-metadata",
+        "--fetch-external-metadata",
         action="store_true",
-        help="infer missing metadata from external sources like GitHub",
+        help="fetch additional metadata from external sources like GitHub",
+    )
+    parser.add_argument(
+        "-g",
+        "--github-token-file",
+        type=Path,
+        help="path to a file containing a GitHub token for fetching metadata",
+    )
+    parser.add_argument(
+        "-G",
+        "--github-token-gh",
+        action="store_true",
+        help="obtain GitHub token from gh",
     )
     parser.add_argument(
         "-b",
@@ -57,12 +166,15 @@ def main():
         clone_and_prepare_repo(repo=args.repo, url=args.url)
     install_toolchain(repo=args.repo)
 
-    config_json = box.run_stdout("lake", "reservoir-config")
-    config = ReservoirConfig.parse(config_json)
+    md_lake = fetch_lake_metadata(box)
+    md_github = fetch_github_metadata(args)
 
-    # TODO Fetch metadata from GitHub
+    data = {
+        "metadata_lake": md_lake,
+        "metadata_github": md_github,
+    }
 
-    print(config.dump())
+    print(json.dumps(data, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

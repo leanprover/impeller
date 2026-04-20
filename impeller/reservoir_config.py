@@ -66,19 +66,3 @@ class ReservoirConfig:
             version=as_str(data.get("version")),
             version_tags=as_list_of(as_str, data.get("versionTags")),
         )
-
-    def dump(self) -> str:
-        return json.dumps({
-            "schemaVersion": "1.0.0",
-            "description": self.description,
-            "doIndex": self.do_index,
-            "homepage": self.homepage,
-            "keywords": self.keywords,
-            "license": self.license,
-            "licenseFiles": self.license_files,
-            "name": self.name,
-            "platformIndependent": self.platform_independent,
-            "readmeFile": self.readme_file,
-            "version": self.version,
-            "versionTags": self.version_tags,
-        })

@@ -4,7 +4,9 @@ version = "0.0.0"
 description = "Analyze and build lake projects"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pygithub>=2.9.1",
+]
 
 [project.scripts]
 impeller-analyze = "impeller.analyze:main"
