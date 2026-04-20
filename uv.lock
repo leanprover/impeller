@@ -150,7 +150,7 @@ wheels = [
 [[package]]
 name = "impeller"
 version = "0.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "pygithub" },
 ]
