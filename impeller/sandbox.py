@@ -42,12 +42,10 @@ class NoSandbox(Sandbox):
 
 
 def _bwrap_bind(path: Path) -> list[Arg]:
-    path = path.resolve()
     return ["--bind", path, path]
 
 
 def _bwrap_ro_bind(path: Path) -> list[Arg]:
-    path = path.resolve()
     return ["--ro-bind", path, path]
 
 
@@ -81,16 +79,17 @@ class BubblewrapSandbox(Sandbox):
         self.args.extend(_bwrap_ro_bind(path))
 
     def _args_for_cmd(self, cmd: tuple[Arg, ...]) -> list[Arg]:
+        repo = self.repo.resolve()
         args = list(self.args)
-        args.extend(_bwrap_bind(self.repo))
-        args.extend(_bwrap_ro_bind(self.repo / ".git"))
-        args.extend(("--chdir", self.repo))
+        args.extend(_bwrap_bind(repo))
+        args.extend(_bwrap_ro_bind(repo / ".git"))
+        args.extend(("--chdir", repo))
         args.append("--")
         args.extend(cmd)
         return args
 
     def run(self, *cmd: Arg, silent: bool = False) -> None:
-        print("$ " + " ".join(shlex.quote(str(arg)) for arg in cmd))
+        print("bwrap$ " + " ".join(shlex.quote(str(arg)) for arg in cmd))
         subprocess.run(
             self._args_for_cmd(cmd=cmd),
             check=True,
@@ -99,7 +98,7 @@ class BubblewrapSandbox(Sandbox):
         )
 
     def run_stdout(self, *cmd: Arg) -> str:
-        print("$ " + " ".join(shlex.quote(str(arg)) for arg in cmd))
+        print("bwrap$ " + " ".join(shlex.quote(str(arg)) for arg in cmd))
         return subprocess.run(
             self._args_for_cmd(cmd=cmd),
             check=True,

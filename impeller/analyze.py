@@ -1,5 +1,6 @@
 import json
 import re
+import subprocess
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from impeller.util import clone_and_prepare_repo, install_toolchain
 class Args:
     repo: Path
     url: str | None
+    output: Path | None
     fetch_external_metadata: bool
     github_token_file: Path | None
     github_token_gh: bool
@@ -22,8 +24,12 @@ class Args:
     bubblewrap_nixos: bool
 
 
-def fetch_lake_metadata(box: Sandbox) -> dict[str, Any]:
-    config_json = box.run_stdout("lake", "reservoir-config")
+def fetch_lake_metadata(box: Sandbox) -> dict[str, Any] | None:
+    try:
+        config_json = box.run_stdout("lake", "reservoir-config")
+    except subprocess.CalledProcessError:
+        return
+
     config = ReservoirConfig.parse(config_json)
 
     # Only the global fields, not the version-specific ones
@@ -95,7 +101,7 @@ def fetch_github_metadata(args: Args) -> dict[str, Any] | None:
         "pushed_at": r.pushed_at.isoformat(),
         "created_at": r.created_at.isoformat(),
         "updated_at": r.updated_at.isoformat(),
-        "license": r.license,
+        "license_spdx_id": r.license.spdx_id,
     }
 
 
@@ -123,6 +129,12 @@ def main():
         "--url",
         type=str,
         help="clone or update the repo from this URL",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="output file for the metadata",
     )
     parser.add_argument(
         "-m",
@@ -174,7 +186,8 @@ def main():
         "metadata_github": md_github,
     }
 
-    print(json.dumps(data, indent=2, sort_keys=True))
+    output = args.output or args.repo.with_name(args.repo.name + ".json")
+    output.write_text(json.dumps(data, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

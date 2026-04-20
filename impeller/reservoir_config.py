@@ -38,9 +38,9 @@ class ReservoirConfig:
     platform_independent: bool | None
     version_tags: list[str]
     # Version-specific
-    license: str
+    license: str | None
     license_files: list[str]
-    readme_file: str
+    readme_file: str | None
     version: str
 
     @classmethod
@@ -58,11 +58,11 @@ class ReservoirConfig:
             do_index=as_bool(data.get("doIndex")),
             homepage=as_str(data.get("homepage")),
             keywords=as_list_of(as_str, data.get("keywords")),
-            license=as_str(data.get("license")),
+            license=as_none_or(as_str, data.get("license")),
             license_files=as_list_of(as_str, data.get("licenseFiles")),
             name=as_str(data.get("name")),
             platform_independent=as_none_or(as_bool, data.get("platformIndependent")),
-            readme_file=as_str(data.get("readmeFile")),
+            readme_file=as_none_or(as_str, data.get("readmeFile")),
             version=as_str(data.get("version")),
             version_tags=as_list_of(as_str, data.get("versionTags")),
         )
