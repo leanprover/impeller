@@ -24,6 +24,14 @@ class Args:
     bubblewrap_nixos: bool
 
 
+def fetch_git_metadata(args: Args) -> dict[str, Any]:
+    tags = util.run_stdout("git", "tag", "--list", "v*", cwd=args.repo).splitlines()
+
+    return {
+        "version_tags": tags,
+    }
+
+
 def fetch_lake_metadata(box: Sandbox) -> dict[str, Any] | None:
     try:
         config_json = box.run_stdout("lake", "reservoir-config")
@@ -174,8 +182,14 @@ def main():
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
 
+    md_git = None
     md_lake = None
     md_github = None
+
+    try:
+        md_git = fetch_git_metadata(args)
+    except Exception as e:
+        print("Error fetching git metadata:", e)
 
     try:
         if args.url:
@@ -191,12 +205,13 @@ def main():
         print("Error fetching github metadata:", e)
 
     data = {
+        "metadata_git": md_git,
         "metadata_lake": md_lake,
         "metadata_github": md_github,
     }
 
     output = args.output or args.repo.with_name(args.repo.name + ".json")
-    output.write_text(json.dumps(data, indent=2, sort_keys=True))
+    output.write_text(json.dumps(data, indent=2))
 
 
 if __name__ == "__main__":
