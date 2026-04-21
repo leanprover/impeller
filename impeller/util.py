@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import shlex
@@ -9,6 +10,10 @@ type Arg = str | bytes | PathLike[str] | PathLike[bytes]
 
 ENV = os.environ.copy()
 ENV["GIT_TERMINAL_PROMPT"] = "0"
+
+
+def now() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
 def run(

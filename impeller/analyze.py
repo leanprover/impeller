@@ -13,6 +13,7 @@ from impeller.util import (
     clone_and_prepare_repo,
     get_toolchain,
     install_toolchain,
+    now,
     run_stdout,
 )
 
@@ -207,7 +208,11 @@ def main():
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
 
+    start = now()
     data = get_data(args, box)
+    end = now()
+    data["start"] = start
+    data["end"] = end
 
     output = args.output or args.repo.with_name(args.repo.name + ".json")
     output.write_text(json.dumps(data, indent=2))

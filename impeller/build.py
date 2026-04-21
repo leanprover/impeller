@@ -11,6 +11,7 @@ from impeller.util import (
     get_active_toolchain,
     get_toolchain,
     install_toolchain,
+    now,
     run_stdout,
     switch_to_ref,
 )
@@ -125,21 +126,27 @@ def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
     check_build = check(box, "build")
     build = None
     if check_build != False:  # noqa: E712
+        data["build_start"] = now()
         build = do(box, "build")
+        data["build_end"] = now()
     data["check_build"] = check_build
     data["build"] = build
 
     check_test = check(box, "test")
     test = None
     if check_test != False and build:  # noqa: E712
+        data["test_start"] = now()
         test = do(box, "test")
+        data["test_end"] = now()
     data["check_test"] = check_test
     data["test"] = test
 
     check_lint = check(box, "lint")
     lint = None
     if check_lint != False and build:  # noqa: E712
+        data["lint_start"] = now()
         lint = do(box, "lint")
+        data["lint_end"] = now()
     data["check_lint"] = check_lint
     data["lint"] = lint
 
@@ -191,7 +198,11 @@ def main():
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
 
+    start = now()
     data = get_data(args, box)
+    end = now()
+    data["start"] = start
+    data["end"] = end
 
     output = args.output or args.repo.with_name(
         f"{args.repo.name}.build.{args.ref}.json"
