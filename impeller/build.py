@@ -18,13 +18,13 @@ class Args:
     bubblewrap_nixos: bool
 
 
-def fetch_lake_metadata(box: Sandbox) -> dict[str, Any] | None:
+def fetch_lake_metadata(args: Args, box: Sandbox) -> dict[str, Any] | None:
     try:
         config_json = box.run_stdout("lake", "reservoir-config")
     except subprocess.CalledProcessError:
         return
 
-    config = ReservoirConfig.parse(config_json)
+    config = ReservoirConfig.parse(config_json, args.repo)
 
     # Only the version-specific fields, not the global ones
     return {
@@ -79,7 +79,7 @@ def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
         return data
 
     try:
-        data["metadata_lake"] = fetch_lake_metadata(box)
+        data["metadata_lake"] = fetch_lake_metadata(args, box)
     except Exception as e:
         print("Error fetching lake metadata:", e)
 

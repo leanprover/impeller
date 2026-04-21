@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Self
 
 
@@ -7,6 +8,17 @@ def as_str(value: Any) -> str:
     if not isinstance(value, str):
         raise ValueError(f"expected a string, got {type(value).__name__}")
     return value
+
+
+def as_path(base: Path) -> Callable[[Any], str]:
+    base = base.resolve()
+
+    def as_path(value: Any) -> str:
+        path = base / as_str(value)
+        path = path.resolve().relative_to(base)
+        return str(path)
+
+    return as_path
 
 
 def as_bool(value: Any) -> bool:
@@ -44,7 +56,7 @@ class ReservoirConfig:
     version: str
 
     @classmethod
-    def parse(cls, json_str: str) -> Self:
+    def parse(cls, json_str: str, repo_dir: Path) -> Self:
         data = json.loads(json_str)
         if not isinstance(data, dict):
             raise ValueError("expected a JSON object")
@@ -59,10 +71,10 @@ class ReservoirConfig:
             homepage=as_str(data.get("homepage")),
             keywords=as_list_of(as_str, data.get("keywords")),
             license=as_none_or(as_str, data.get("license")),
-            license_files=as_list_of(as_str, data.get("licenseFiles")),
+            license_files=as_list_of(as_path(repo_dir), data.get("licenseFiles")),
             name=as_str(data.get("name")),
             platform_independent=as_none_or(as_bool, data.get("platformIndependent")),
-            readme_file=as_none_or(as_str, data.get("readmeFile")),
+            readme_file=as_none_or(as_path(repo_dir), data.get("readmeFile")),
             version=as_str(data.get("version")),
             version_tags=as_list_of(as_str, data.get("versionTags")),
         )

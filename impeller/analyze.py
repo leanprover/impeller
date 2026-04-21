@@ -31,13 +31,13 @@ def fetch_git_metadata(args: Args) -> dict[str, Any]:
     }
 
 
-def fetch_lake_metadata(box: Sandbox) -> dict[str, Any] | None:
+def fetch_lake_metadata(args: Args, box: Sandbox) -> dict[str, Any] | None:
     try:
         config_json = box.run_stdout("lake", "reservoir-config")
     except subprocess.CalledProcessError:
         return
 
-    config = ReservoirConfig.parse(config_json)
+    config = ReservoirConfig.parse(config_json, args.repo)
 
     # Only the global fields, not the version-specific ones
     return {
@@ -129,7 +129,7 @@ def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
         print("Error fetching git metadata:", e)
 
     try:
-        data["metadata_lake"] = fetch_lake_metadata(box)
+        data["metadata_lake"] = fetch_lake_metadata(args, box)
     except Exception as e:
         print("Error fetching lake metadata:", e)
 
