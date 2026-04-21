@@ -93,7 +93,7 @@ def fetch_github_metadata(args: Args) -> dict[str, Any] | None:
         "homepage": r.homepage,
         "forks_count": r.forks_count,
         "stargazers_count": r.stargazers_count,
-        "watchers_count": r.watchers_count,
+        "subscribers_count": r.subscribers_count,
         "default_branch": r.default_branch,
         "topics": r.topics,
         "archived": r.archived,
