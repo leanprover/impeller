@@ -52,11 +52,11 @@ def clone_and_prepare_repo(repo: Path, url: str) -> None:
 
     # Prepare working directory
     run("git", "clean", "-dffx", cwd=repo)
-    switch_to_rev(repo, "origin/HEAD")
+    switch_to_ref(repo, "origin/HEAD")
 
 
-def switch_to_rev(repo: Path, rev: str) -> None:
-    run("git", "switch", "--detach", rev, cwd=repo)
+def switch_to_ref(repo: Path, ref: str) -> None:
+    run("git", "switch", "--detach", ref, cwd=repo)
     run("git", "clean", "-dffx", cwd=repo)
 
 

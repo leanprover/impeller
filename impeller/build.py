@@ -6,14 +6,14 @@ from typing import Any
 
 from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import Sandbox, get_sandbox
-from impeller.util import clone_and_prepare_repo, install_toolchain, switch_to_rev
+from impeller.util import clone_and_prepare_repo, install_toolchain, switch_to_ref
 
 
 class Args:
     repo: Path
     url: str | None
     output: Path | None
-    rev: str | None
+    ref: str | None
     bubblewrap: bool
     bubblewrap_nixos: bool
 
@@ -65,14 +65,14 @@ def do(box: Sandbox, name: str) -> bool:
 def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
     data: dict[str, Any] = {}
 
-    if args.rev:
-        data["rev"] = args.rev
+    if args.ref:
+        data["ref"] = args.ref
 
     try:
         if args.url:
             clone_and_prepare_repo(repo=args.repo, url=args.url)
-        if args.rev:
-            switch_to_rev(args.repo, args.rev)
+        if args.ref:
+            switch_to_ref(args.repo, args.ref)
         install_toolchain(repo=args.repo)
     except Exception as e:
         print("Error setting up repo:", e)
@@ -133,9 +133,9 @@ def main():
     )
     parser.add_argument(
         "-r",
-        "--rev",
+        "--ref",
         type=str,
-        help="checkout this revision before building",
+        help="switch to this reference before building",
     )
     parser.add_argument(
         "-b",
