@@ -10,28 +10,22 @@ ENV = os.environ.copy()
 ENV["GIT_TERMINAL_PROMPT"] = "0"
 
 
-def run(*args: Arg, cwd: Path | None = None, silent: bool = False) -> None:
+def run(
+    *args: Arg, cwd: Path | None = None, check: bool = True, capture: bool = False
+) -> subprocess.CompletedProcess[str]:
     print("$ " + " ".join(shlex.quote(str(arg)) for arg in args))
-    subprocess.run(
+    return subprocess.run(
         args,
-        check=True,
         env=ENV,
         cwd=cwd,
-        capture_output=silent,
+        check=check,
+        capture_output=capture,
+        text=True,
     )
 
 
 def run_stdout(*args: Arg, cwd: Path | None = None) -> str:
-    print("$ " + " ".join(shlex.quote(str(arg)) for arg in args))
-    res = subprocess.run(
-        args,
-        check=True,
-        env=ENV,
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        text=True,
-    )
-    return res.stdout
+    return run(*args, cwd=cwd, check=True, capture=True).stdout
 
 
 def clone_and_prepare_repo(repo: Path, url: str) -> None:
