@@ -7,10 +7,9 @@ from typing import Any
 
 from github import Auth, Github
 
-from impeller import util
 from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import Sandbox, get_sandbox
-from impeller.util import clone_and_prepare_repo, install_toolchain
+from impeller.util import clone_and_prepare_repo, install_toolchain, run_stdout
 
 
 class Args:
@@ -25,7 +24,7 @@ class Args:
 
 
 def fetch_git_metadata(args: Args) -> dict[str, Any]:
-    tags = util.run_stdout("git", "tag", "--list", "v*", cwd=args.repo).splitlines()
+    tags = run_stdout("git", "tag", "--list", "v*", cwd=args.repo).splitlines()
 
     return {
         "version_tags": tags,
@@ -54,7 +53,7 @@ def fetch_lake_metadata(box: Sandbox) -> dict[str, Any] | None:
 
 def get_github_token(args: Args) -> str | None:
     if args.github_token_gh:
-        return util.run_stdout("gh", "auth", "token").strip()
+        return run_stdout("gh", "auth", "token").strip()
     if args.github_token_file:
         return args.github_token_file.read_text().strip()
 
@@ -113,15 +112,32 @@ def fetch_github_metadata(args: Args) -> dict[str, Any] | None:
     }
 
 
-def merge_metadata(
-    lake: dict[str, Any], github: dict[str, Any] | None
-) -> dict[str, Any]:
-    github = github or {}
+def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
+    data = {}
 
-    data = dict(lake)
-    data["description"] = data.get("description", github.get("description"))
-    data["homepage"] = data.get("homepage", github.get("homepage"))
-    data["topics"] = data.get("topics", github.get("topics"))
+    try:
+        if args.url:
+            clone_and_prepare_repo(repo=args.repo, url=args.url)
+        install_toolchain(repo=args.repo)
+    except Exception as e:
+        print("Error setting up repo:", e)
+        return data
+
+    try:
+        data["metadata_git"] = fetch_git_metadata(args)
+    except Exception as e:
+        print("Error fetching git metadata:", e)
+
+    try:
+        data["metadata_lake"] = fetch_lake_metadata(box)
+    except Exception as e:
+        print("Error fetching lake metadata:", e)
+
+    try:
+        data["metadata_github"] = fetch_github_metadata(args)
+    except Exception as e:
+        print("Error fetching github metadata:", e)
+
     return data
 
 
@@ -182,33 +198,7 @@ def main():
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
 
-    md_git = None
-    md_lake = None
-    md_github = None
-
-    try:
-        md_git = fetch_git_metadata(args)
-    except Exception as e:
-        print("Error fetching git metadata:", e)
-
-    try:
-        if args.url:
-            clone_and_prepare_repo(repo=args.repo, url=args.url)
-        install_toolchain(repo=args.repo)
-        md_lake = fetch_lake_metadata(box)
-    except Exception as e:
-        print("Error fetching lake metadata:", e)
-
-    try:
-        md_github = fetch_github_metadata(args)
-    except Exception as e:
-        print("Error fetching github metadata:", e)
-
-    data = {
-        "metadata_git": md_git,
-        "metadata_lake": md_lake,
-        "metadata_github": md_github,
-    }
+    data = get_data(args, box)
 
     output = args.output or args.repo.with_name(args.repo.name + ".json")
     output.write_text(json.dumps(data, indent=2))

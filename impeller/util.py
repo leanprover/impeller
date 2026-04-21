@@ -58,7 +58,12 @@ def clone_and_prepare_repo(repo: Path, url: str) -> None:
 
     # Prepare working directory
     run("git", "clean", "-dffx", cwd=repo)
-    run("git", "switch", "--detach", "origin/HEAD", cwd=repo)
+    switch_to_rev(repo, "origin/HEAD")
+
+
+def switch_to_rev(repo: Path, rev: str) -> None:
+    run("git", "switch", "--detach", rev, cwd=repo)
+    run("git", "clean", "-dffx", cwd=repo)
 
 
 def install_toolchain(repo: Path) -> None:
