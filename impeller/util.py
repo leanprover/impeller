@@ -1,4 +1,5 @@
 import os
+import re
 import shlex
 import subprocess
 from os import PathLike
@@ -60,13 +61,23 @@ def switch_to_ref(repo: Path, ref: str) -> None:
     run("git", "clean", "-dffx", cwd=repo)
 
 
-def install_toolchain(repo: Path) -> None:
+def get_toolchain(repo: Path) -> str | None:
     toolchain_file = repo / "lean-toolchain"
     try:
-        toolchain = toolchain_file.read_text().strip()
+        return toolchain_file.read_text().strip()
     except FileNotFoundError:
-        return  # TODO Note somewhere that no toolchain file was found
+        return
 
+
+def get_active_toolchain(repo: Path) -> str:
+    text = run_stdout("elan", "show")
+    match = re.search(r"active toolchain\n----------------\n\n(\S+)", text)
+    if not match:
+        raise Exception("Failed to determine active toolchain from elan show")
+    return match.group(1)
+
+
+def install_toolchain(toolchain: str) -> None:
     installed = run_stdout("elan", "toolchain", "list").splitlines()
     if toolchain in installed:
         return
@@ -74,4 +85,5 @@ def install_toolchain(repo: Path) -> None:
     try:
         run("elan", "toolchain", "install", toolchain)
     except subprocess.CalledProcessError:
+        # TODO Check if error message mentions that toolchain is already installed, error otherwise?
         return  # Probably already installed

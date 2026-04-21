@@ -9,7 +9,12 @@ from github import Auth, Github
 
 from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import Sandbox, get_sandbox
-from impeller.util import clone_and_prepare_repo, install_toolchain, run_stdout
+from impeller.util import (
+    clone_and_prepare_repo,
+    get_toolchain,
+    install_toolchain,
+    run_stdout,
+)
 
 
 class Args:
@@ -113,15 +118,7 @@ def fetch_github_metadata(args: Args) -> dict[str, Any] | None:
 
 
 def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
-    data = {}
-
-    try:
-        if args.url:
-            clone_and_prepare_repo(repo=args.repo, url=args.url)
-        install_toolchain(repo=args.repo)
-    except Exception as e:
-        print("Error setting up repo:", e)
-        return data
+    data: dict[str, Any] = {}
 
     try:
         data["metadata_git"] = fetch_git_metadata(args)
@@ -129,14 +126,27 @@ def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
         print("Error fetching git metadata:", e)
 
     try:
-        data["metadata_lake"] = fetch_lake_metadata(args, box)
-    except Exception as e:
-        print("Error fetching lake metadata:", e)
-
-    try:
         data["metadata_github"] = fetch_github_metadata(args)
     except Exception as e:
         print("Error fetching github metadata:", e)
+
+    try:
+        if args.url:
+            clone_and_prepare_repo(repo=args.repo, url=args.url)
+
+        toolchain = get_toolchain(args.repo)
+        if toolchain is None:
+            return data
+
+        install_toolchain(toolchain)
+    except Exception as e:
+        print("Error setting up repo:", e)
+        return data
+
+    try:
+        data["metadata_lake"] = fetch_lake_metadata(args, box)
+    except Exception as e:
+        print("Error fetching lake metadata:", e)
 
     return data
 

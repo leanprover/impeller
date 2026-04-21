@@ -8,6 +8,8 @@ from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import Sandbox, get_sandbox
 from impeller.util import (
     clone_and_prepare_repo,
+    get_active_toolchain,
+    get_toolchain,
     install_toolchain,
     run_stdout,
     switch_to_ref,
@@ -89,14 +91,24 @@ def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
     except Exception as e:
         print("Error fetching git metadata:", e)
 
+    toolchain = get_toolchain(args.repo)
+    data["toolchain"] = toolchain
+
     try:
         if args.url:
             clone_and_prepare_repo(repo=args.repo, url=args.url)
         if args.ref:
             switch_to_ref(args.repo, args.ref)
-        install_toolchain(repo=args.repo)
+        if toolchain is not None:
+            install_toolchain(toolchain)
     except Exception as e:
         print("Error setting up repo:", e)
+        return data
+
+    try:
+        data["active_toolchain"] = get_active_toolchain(args.repo)
+    except Exception as e:
+        print("Error fetching active toolchain:", e)
         return data
 
     try:
