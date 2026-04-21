@@ -193,7 +193,11 @@ def main():
 
     data = get_data(args, box)
 
-    output = args.output or args.repo.with_name(args.repo.name + ".json")
+    output = args.output or args.repo.with_name(
+        f"{args.repo.name}.build.{args.ref}.json"
+        if args.ref
+        else f"{args.repo.name}.build.json"
+    )
     output.write_text(json.dumps(data, indent=2))
 
 
