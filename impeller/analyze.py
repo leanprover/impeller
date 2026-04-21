@@ -51,7 +51,6 @@ def fetch_lake_metadata(args: Args, box: Sandbox) -> dict[str, Any] | None:
         "homepage": config.homepage,
         "keywords": config.keywords,
         "name": config.name,
-        "platform_independent": config.platform_independent,
         "version_tags": config.version_tags,
     }
 

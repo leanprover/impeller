@@ -51,6 +51,7 @@ def fetch_lake_metadata(args: Args, box: Sandbox) -> dict[str, Any] | None:
     return {
         "license": config.license,
         "license_files": config.license_files,
+        "platform_independent": config.platform_independent,
         "readme_file": config.readme_file,
         "version": config.version,
     }

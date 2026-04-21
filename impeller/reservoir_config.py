@@ -47,11 +47,11 @@ class ReservoirConfig:
     homepage: str
     keywords: list[str]
     name: str
-    platform_independent: bool | None
     version_tags: list[str]
     # Version-specific
     license: str | None
     license_files: list[str]
+    platform_independent: bool | None
     readme_file: str | None
     version: str
 
