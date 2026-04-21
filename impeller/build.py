@@ -6,7 +6,12 @@ from typing import Any
 
 from impeller.reservoir_config import ReservoirConfig
 from impeller.sandbox import Sandbox, get_sandbox
-from impeller.util import clone_and_prepare_repo, install_toolchain, switch_to_ref
+from impeller.util import (
+    clone_and_prepare_repo,
+    install_toolchain,
+    run_stdout,
+    switch_to_ref,
+)
 
 
 class Args:
@@ -16,6 +21,20 @@ class Args:
     ref: str | None
     bubblewrap: bool
     bubblewrap_nixos: bool
+
+
+def fetch_git_metadata(args: Args) -> dict[str, Any]:
+    data = {}
+
+    if args.ref:
+        data["ref"] = args.ref
+
+    try:
+        data["sha"] = run_stdout("git", "rev-parse", "HEAD", cwd=args.repo).strip()
+    except Exception as e:
+        print("Error fetching sha:", e)
+
+    return data
 
 
 def fetch_lake_metadata(args: Args, box: Sandbox) -> dict[str, Any] | None:
@@ -65,8 +84,10 @@ def do(box: Sandbox, name: str) -> bool:
 def get_data(args: Args, box: Sandbox) -> dict[str, Any]:
     data: dict[str, Any] = {}
 
-    if args.ref:
-        data["ref"] = args.ref
+    try:
+        data["metadata_git"] = fetch_git_metadata(args)
+    except Exception as e:
+        print("Error fetching git metadata:", e)
 
     try:
         if args.url:
