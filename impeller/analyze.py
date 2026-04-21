@@ -174,12 +174,21 @@ def main():
         bubblewrap_nixos=args.bubblewrap_nixos,
     )
 
-    if args.url:
-        clone_and_prepare_repo(repo=args.repo, url=args.url)
-    install_toolchain(repo=args.repo)
+    md_lake = None
+    md_github = None
 
-    md_lake = fetch_lake_metadata(box)
-    md_github = fetch_github_metadata(args)
+    try:
+        if args.url:
+            clone_and_prepare_repo(repo=args.repo, url=args.url)
+        install_toolchain(repo=args.repo)
+        md_lake = fetch_lake_metadata(box)
+    except Exception as e:
+        print("Error fetching lake metadata:", e)
+
+    try:
+        md_github = fetch_github_metadata(args)
+    except Exception as e:
+        print("Error fetching github metadata:", e)
 
     data = {
         "metadata_lake": md_lake,
