@@ -10,8 +10,7 @@ from impeller.sandbox import get_sandbox
 from impeller.util import clone_and_prepare_repo, get_toolchain, install_toolchain, now
 
 
-def main():
-    parser = ArgumentParser(prog="impeller")
+def add_common_arguments(parser: ArgumentParser) -> None:
     parser.add_argument(
         "-r",
         "--repo",
@@ -45,6 +44,10 @@ def main():
         help="configure bubblewrap for use on NixOS",
     )
 
+
+def main():
+    parser = ArgumentParser(prog="impeller")
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     #################################
@@ -52,6 +55,7 @@ def main():
     #################################
 
     ag = subparsers.add_parser("analyze-global")
+    add_common_arguments(ag)
     ag.add_argument(
         "-m",
         "--fetch-external-metadata",
@@ -76,8 +80,8 @@ def main():
     ##################################
 
     av = subparsers.add_parser("analyze-version")
+    add_common_arguments(av)
     av.add_argument(
-        "-r",
         "--rev",
         type=str,
         help="switch to this commit before analyzing",
@@ -88,8 +92,8 @@ def main():
     ################################
 
     bv = subparsers.add_parser("build-version")
+    add_common_arguments(bv)
     bv.add_argument(
-        "-r",
         "--rev",
         type=str,
         help="switch to this commit before building",
