@@ -13,8 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-impeller-analyze = "impeller.analyze:main"
-impeller-build = "impeller.build:main"
+impeller = "impeller.cli:main"
 
 [tool.ruff.format]
 preview = true
