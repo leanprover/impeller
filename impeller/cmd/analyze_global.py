@@ -114,7 +114,7 @@ class CmdAnalyzeGlobal:
             "default_branch": r.default_branch,
             "topics": r.topics,
             "archived": r.archived,
-            "disabled:": r.disabled,
+            "disabled": r.disabled,
             "pushed_at": r.pushed_at.isoformat(),
             "created_at": r.created_at.isoformat(),
             "updated_at": r.updated_at.isoformat(),
