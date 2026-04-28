@@ -129,6 +129,7 @@ class CmdAnalyzeGlobal:
         self.resolve_version_tags(git, lake)
 
         return {
+            "version": "v0",
             "git": git,
             "lake": lake,
             "github": github,
