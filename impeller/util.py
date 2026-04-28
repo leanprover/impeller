@@ -96,6 +96,10 @@ def install_toolchain(toolchain: str) -> None:
         return  # Probably already installed
 
 
+def get_current_sha(repo: Path) -> str:
+    return run_stdout("git", "rev-parse", "HEAD", cwd=repo).strip()
+
+
 def check_for_command(box: Sandbox, name: str) -> bool | None:
     try:
         result = box.run("lake", f"check-{name}", check=False, capture=True)
@@ -107,3 +111,12 @@ def check_for_command(box: Sandbox, name: str) -> bool | None:
     except Exception as e:
         print(f"Error checking for {name}:", e)
         return None
+
+
+def test_command(box: Sandbox, name: str) -> bool:
+    try:
+        box.run("lake", name)
+        return True
+    except Exception as e:
+        print(f"Error running {name}:", e)
+        return False

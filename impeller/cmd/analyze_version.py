@@ -6,16 +6,18 @@ from typing import Any
 
 from impeller.cmd import CommandContext
 from impeller.reservoir_config import ReservoirConfig
-from impeller.util import check_for_command, get_toolchain, run_stdout, switch_to_ref
+from impeller.util import (
+    check_for_command,
+    get_current_sha,
+    get_toolchain,
+    switch_to_ref,
+)
 
 
 @dataclass
 class CmdAnalyzeVersion:
     ctx: CommandContext
     rev: str | None
-
-    def get_sha(self) -> str:
-        return run_stdout("git", "rev-parse", "HEAD", cwd=self.ctx.repo).strip()
 
     def get_manifest(self) -> Any | None:
         manifest_file = self.ctx.repo / "lake-manifest.json"
@@ -45,7 +47,7 @@ class CmdAnalyzeVersion:
         if self.rev is not None:
             switch_to_ref(self.ctx.repo, self.rev)
 
-        sha = self.get_sha()
+        sha = get_current_sha(self.ctx.repo)
         toolchain = get_toolchain(self.ctx.repo)
         manifest = self.get_manifest()
         lake = self.get_lake_metadata()
