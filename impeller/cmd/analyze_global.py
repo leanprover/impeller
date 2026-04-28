@@ -53,7 +53,10 @@ class CmdAnalyzeGlobal:
         tag_shas: dict[str, str] = {}
         for tag in sorted(all_tags):
             try:
-                stdout = run_stdout("git", "rev-parse", "--", tag, cwd=self.ctx.repo)
+                # https://stackoverflow.com/a/16818141
+                stdout = run_stdout(
+                    "git", "rev-parse", f"{tag}^{{}}", cwd=self.ctx.repo
+                )
                 tag_shas[tag] = stdout.strip()
             except subprocess.CalledProcessError:
                 pass
