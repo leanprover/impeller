@@ -5,9 +5,9 @@ from json import JSONDecodeError
 from typing import Any
 
 from impeller.cmd import CommandContext
+from impeller.cmd.build_version import check_for_command
 from impeller.reservoir_config import ReservoirConfig
 from impeller.util import (
-    check_for_command,
     get_current_sha,
     get_toolchain,
     switch_to_ref,

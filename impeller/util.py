@@ -6,8 +6,6 @@ import subprocess
 from os import PathLike
 from pathlib import Path
 
-from impeller.sandbox import Sandbox
-
 type Arg = str | bytes | PathLike[str] | PathLike[bytes]
 
 ENV = os.environ.copy()
@@ -98,25 +96,3 @@ def install_toolchain(toolchain: str) -> None:
 
 def get_current_sha(repo: Path) -> str:
     return run_stdout("git", "rev-parse", "HEAD", cwd=repo).strip()
-
-
-def check_for_command(box: Sandbox, name: str) -> bool | None:
-    try:
-        result = box.run("lake", f"check-{name}", check=False, capture=True)
-        if result.returncode == 0:
-            return True
-        if "unknown command" in result.stderr:
-            return None
-        return False
-    except Exception as e:
-        print(f"Error checking for {name}:", e)
-        return None
-
-
-def test_command(box: Sandbox, name: str) -> bool:
-    try:
-        box.run("lake", name)
-        return True
-    except Exception as e:
-        print(f"Error running {name}:", e)
-        return False

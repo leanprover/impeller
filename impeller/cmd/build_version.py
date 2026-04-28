@@ -2,14 +2,30 @@ from dataclasses import dataclass
 from typing import Any
 
 from impeller.cmd import CommandContext
-from impeller.util import (
-    check_for_command,
-    get_current_sha,
-    get_toolchain,
-    now,
-    switch_to_ref,
-    test_command,
-)
+from impeller.sandbox import Sandbox
+from impeller.util import get_current_sha, get_toolchain, now, switch_to_ref
+
+
+def check_for_command(box: Sandbox, name: str) -> bool | None:
+    try:
+        result = box.run("lake", f"check-{name}", check=False, capture=True)
+        if result.returncode == 0:
+            return True
+        if "unknown command" in result.stderr:
+            return None
+        return False
+    except Exception as e:
+        print(f"Error checking for {name}:", e)
+        return None
+
+
+def test_command(box: Sandbox, name: str) -> bool:
+    try:
+        box.run("lake", name)
+        return True
+    except Exception as e:
+        print(f"Error running {name}:", e)
+        return False
 
 
 @dataclass
