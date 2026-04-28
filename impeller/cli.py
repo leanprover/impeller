@@ -77,6 +77,7 @@ def main():
 
     av = subparsers.add_parser("analyze-version")
     av.add_argument(
+        "-r",
         "--rev",
         type=str,
         help="switch to this commit before analyzing",
@@ -88,6 +89,7 @@ def main():
 
     bv = subparsers.add_parser("build-version")
     bv.add_argument(
+        "-r",
         "--rev",
         type=str,
         help="switch to this commit before building",
@@ -95,36 +97,42 @@ def main():
     bv_build = bv.add_mutually_exclusive_group()
     bv_build.add_argument(
         "--build",
-        action="store_true",
+        action="store_const",
+        const=True,
         help="always run `lake build`",
     )
     bv_build.add_argument(
         "--no-build",
-        action="store_false",
+        action="store_const",
+        const=False,
         dest="build",
         help="never run `lake build`",
     )
     bv_test = bv.add_mutually_exclusive_group()
     bv_test.add_argument(
         "--test",
-        action="store_true",
+        action="store_const",
+        const=True,
         help="always run `lake test`",
     )
     bv_test.add_argument(
         "--no-test",
-        action="store_false",
+        action="store_const",
+        const=False,
         dest="test",
         help="never run `lake test`",
     )
     bv_lint = bv.add_mutually_exclusive_group()
     bv_lint.add_argument(
         "--lint",
-        action="store_true",
+        action="store_const",
+        const=True,
         help="always run `lake lint`",
     )
     bv_lint.add_argument(
         "--no-lint",
-        action="store_false",
+        action="store_const",
+        const=False,
         dest="lint",
         help="never run `lake lint`",
     )
