@@ -7,7 +7,7 @@ from impeller.cmd.analyze_global import CmdAnalyzeGlobal
 from impeller.cmd.analyze_version import CmdAnalyzeVersion
 from impeller.cmd.build_version import CmdBuildVersion
 from impeller.sandbox import get_sandbox
-from impeller.util import now
+from impeller.util import clone_and_prepare_repo, get_toolchain, install_toolchain, now
 
 
 def main():
@@ -143,6 +143,12 @@ def main():
     )
 
     started = now()
+
+    if ctx.url:
+        clone_and_prepare_repo(repo=ctx.repo, url=ctx.url)
+
+    if toolchain := get_toolchain(ctx.repo):
+        install_toolchain(toolchain)
 
     command: str = args.command
     if command == "analyze-global":

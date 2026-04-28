@@ -8,12 +8,7 @@ from github import Auth, Github
 
 from impeller.cmd import CommandContext
 from impeller.reservoir_config import ReservoirConfig
-from impeller.util import (
-    clone_and_prepare_repo,
-    get_toolchain,
-    install_toolchain,
-    run_stdout,
-)
+from impeller.util import run_stdout
 
 
 @dataclass
@@ -23,14 +18,14 @@ class CmdAnalyzeGlobal:
     github_token_file: Path | None
     github_token_gh: bool
 
-    def fetch_git_metadata(self) -> dict[str, Any]:
+    def get_git_metadata(self) -> dict[str, Any]:
         tags = run_stdout("git", "tag", "--list", "v*", cwd=self.ctx.repo).splitlines()
 
         return {
             "version_tags": tags,
         }
 
-    def fetch_lake_metadata(self) -> dict[str, Any] | None:
+    def get_lake_metadata(self) -> dict[str, Any] | None:
         try:
             config_json = self.ctx.box.run_stdout("lake", "reservoir-config")
         except subprocess.CalledProcessError:
@@ -47,6 +42,23 @@ class CmdAnalyzeGlobal:
             "name": config.name,
             "version_tags": config.version_tags,
         }
+
+    def resolve_version_tags(
+        self, git: dict[str, Any], lake: dict[str, Any] | None
+    ) -> None:
+        all_tags = set[str]()
+        all_tags.update(git["version_tags"])
+        all_tags.update((lake or {}).get("version_tags", []))
+
+        tag_shas: dict[str, str] = {}
+        for tag in sorted(all_tags):
+            try:
+                stdout = run_stdout("git", "rev-parse", "--", tag, cwd=self.ctx.repo)
+                tag_shas[tag] = stdout.strip()
+            except subprocess.CalledProcessError:
+                pass
+
+        git["tag_shas"] = tag_shas
 
     def get_github_token(self) -> str | None:
         if self.github_token_gh:
@@ -67,7 +79,7 @@ class CmdAnalyzeGlobal:
         fullname: str = match.group(1)
         return fullname
 
-    def fetch_github_metadata(self) -> dict[str, Any] | None:
+    def get_github_metadata(self) -> dict[str, Any] | None:
         if not self.fetch_external_metadata:
             return
 
@@ -107,34 +119,14 @@ class CmdAnalyzeGlobal:
         }
 
     def get_data(self) -> dict[str, Any]:
-        data: dict[str, Any] = {}
+        git = self.get_git_metadata()
+        lake = self.get_lake_metadata()
+        github = self.get_github_metadata()
 
-        try:
-            data["metadata_git"] = self.fetch_git_metadata()
-        except Exception as e:
-            print("Error fetching git metadata:", e)
+        self.resolve_version_tags(git, lake)
 
-        try:
-            data["metadata_github"] = self.fetch_github_metadata()
-        except Exception as e:
-            print("Error fetching github metadata:", e)
-
-        try:
-            if self.ctx.url:
-                clone_and_prepare_repo(repo=self.ctx.repo, url=self.ctx.url)
-
-            toolchain = get_toolchain(self.ctx.repo)
-            if toolchain is None:
-                return data
-
-            install_toolchain(toolchain)
-        except Exception as e:
-            print("Error setting up repo:", e)
-            return data
-
-        try:
-            data["metadata_lake"] = self.fetch_lake_metadata()
-        except Exception as e:
-            print("Error fetching lake metadata:", e)
-
-        return data
+        return {
+            "git": git,
+            "lake": lake,
+            "github": github,
+        }
