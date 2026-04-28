@@ -3,7 +3,7 @@ from typing import Any
 
 from impeller.cmd import CommandContext
 from impeller.sandbox import Sandbox
-from impeller.util import get_current_sha, get_toolchain, now, switch_to_ref
+from impeller.util import get_current_sha, now, switch_to_ref
 
 
 def check_for_command(box: Sandbox, name: str) -> bool | None:
