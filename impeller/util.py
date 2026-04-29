@@ -58,12 +58,14 @@ def clone_and_prepare_repo(repo: Path, url: str) -> None:
 
     # Prepare working directory
     run("git", "clean", "-dffx", cwd=repo)
+    run("git", "checkout", "--", ".", cwd=repo)
     switch_to_ref(repo, "origin/HEAD")
 
 
 def switch_to_ref(repo: Path, ref: str) -> None:
     run("git", "switch", "--detach", ref, cwd=repo)
     run("git", "clean", "-dffx", cwd=repo)
+    run("git", "checkout", "--", ".", cwd=repo)
 
 
 def get_toolchain(repo: Path) -> str | None:
