@@ -118,7 +118,7 @@ class CmdAnalyzeGlobal:
             "pushed_at": r.pushed_at.isoformat(),
             "created_at": r.created_at.isoformat(),
             "updated_at": r.updated_at.isoformat(),
-            "license_spdx_id": r.license.spdx_id,
+            "license_spdx_id": r.license.spdx_id if r.license else None,
         }
 
     def get_data(self) -> dict[str, Any]:
