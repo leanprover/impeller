@@ -11,6 +11,7 @@ from impeller.util import (
     get_active_toolchain,
     get_current_sha,
     get_toolchain,
+    install_toolchain,
     switch_to_ref,
 )
 
@@ -47,6 +48,8 @@ class CmdAnalyzeVersion:
     def get_data(self) -> dict[str, Any]:
         if self.rev is not None:
             switch_to_ref(self.ctx.repo, self.rev)
+        if toolchain := get_toolchain(self.ctx.repo):
+            install_toolchain(toolchain)
 
         sha = get_current_sha(self.ctx.repo)
         toolchain = get_toolchain(self.ctx.repo)

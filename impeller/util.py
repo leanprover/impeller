@@ -34,6 +34,17 @@ def run_stdout(*args: Arg, cwd: Path | None = None) -> str:
     return run(*args, cwd=cwd, check=True, capture=True).stdout
 
 
+def reset_workdir(repo: Path) -> None:
+    run("git", "clean", "-dffx", cwd=repo)
+    run("git", "checkout", "--", ".", cwd=repo)
+
+
+def switch_to_ref(repo: Path, ref: str) -> None:
+    reset_workdir(repo)
+    run("git", "switch", "--detach", ref, cwd=repo)
+    reset_workdir(repo)
+
+
 def clone_and_prepare_repo(repo: Path, url: str) -> None:
     if not repo.exists():
         repo.parent.mkdir(parents=True, exist_ok=True)
@@ -57,15 +68,7 @@ def clone_and_prepare_repo(repo: Path, url: str) -> None:
     )
 
     # Prepare working directory
-    run("git", "clean", "-dffx", cwd=repo)
-    run("git", "checkout", "--", ".", cwd=repo)
     switch_to_ref(repo, "origin/HEAD")
-
-
-def switch_to_ref(repo: Path, ref: str) -> None:
-    run("git", "switch", "--detach", ref, cwd=repo)
-    run("git", "clean", "-dffx", cwd=repo)
-    run("git", "checkout", "--", ".", cwd=repo)
 
 
 def get_toolchain(repo: Path) -> str | None:

@@ -8,7 +8,7 @@ from github import Auth, Github
 
 from impeller.cmd import CommandContext
 from impeller.reservoir_config import ReservoirConfig
-from impeller.util import run_stdout
+from impeller.util import get_toolchain, install_toolchain, run_stdout
 
 
 @dataclass
@@ -133,6 +133,9 @@ class CmdAnalyzeGlobal:
         }
 
     def get_data(self) -> dict[str, Any]:
+        if toolchain := get_toolchain(self.ctx.repo):
+            install_toolchain(toolchain)
+
         git = self.get_git_metadata()
         lake = self.get_lake_metadata()
         github = self.get_github_metadata()

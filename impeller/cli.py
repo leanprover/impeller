@@ -7,7 +7,7 @@ from impeller.cmd.analyze_global import CmdAnalyzeGlobal
 from impeller.cmd.analyze_version import CmdAnalyzeVersion
 from impeller.cmd.build_version import CmdBuildVersion
 from impeller.sandbox import get_sandbox
-from impeller.util import clone_and_prepare_repo, get_toolchain, install_toolchain, now
+from impeller.util import clone_and_prepare_repo, now, reset_workdir, switch_to_ref
 
 
 def add_common_arguments(parser: ArgumentParser) -> None:
@@ -162,10 +162,9 @@ def main():
     started = now()
 
     if ctx.url:
-        clone_and_prepare_repo(repo=ctx.repo, url=ctx.url)
-
-    if toolchain := get_toolchain(ctx.repo):
-        install_toolchain(toolchain)
+        clone_and_prepare_repo(ctx.repo, ctx.url)
+    else:
+        switch_to_ref(ctx.repo, "HEAD")
 
     command: str = args.command
     if command == "analyze-global":
@@ -191,6 +190,8 @@ def main():
         ).get_data()
     else:
         raise SystemExit(f"Unknown command: {command}")
+
+    reset_workdir(ctx.repo)
 
     finished = now()
 
