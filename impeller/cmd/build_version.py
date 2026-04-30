@@ -61,6 +61,7 @@ class CmdBuildVersion:
         build = None
         if self.build is True or (self.build is None and check_build is not False):
             started = now()
+            self.ctx.box.run("lake", "exe", "cache", "get", check=False)
             success = test_command(self.ctx.box, "build")
             finished = now()
             build = {"success": success, "started": started, "finished": finished}
