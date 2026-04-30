@@ -8,6 +8,7 @@ from impeller.cmd import CommandContext
 from impeller.cmd.build_version import check_for_command
 from impeller.reservoir_config import ReservoirConfig
 from impeller.util import (
+    get_active_toolchain,
     get_current_sha,
     get_toolchain,
     switch_to_ref,
@@ -49,6 +50,7 @@ class CmdAnalyzeVersion:
 
         sha = get_current_sha(self.ctx.repo)
         toolchain = get_toolchain(self.ctx.repo)
+        active_toolchain = get_active_toolchain(self.ctx.repo)
         manifest = self.get_manifest()
         lake = self.get_lake_metadata()
         check_build = check_for_command(self.ctx.box, "build")
@@ -59,6 +61,7 @@ class CmdAnalyzeVersion:
             "version": "v0",
             "sha": sha,
             "toolchain": toolchain,
+            "active_toolchain": active_toolchain,
             "manifest": manifest,
             "lake": lake,
             "check_build": check_build,

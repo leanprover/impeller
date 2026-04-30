@@ -76,12 +76,15 @@ def get_toolchain(repo: Path) -> str | None:
         return
 
 
-def get_active_toolchain(repo: Path) -> str:
-    text = run_stdout("elan", "show")
+def get_active_toolchain(repo: Path) -> str | None:
+    text = run_stdout("elan", "show", cwd=repo)
     match = re.search(r"active toolchain\n----------------\n\n(\S+)", text)
     if not match:
         raise Exception("Failed to determine active toolchain from elan show")
-    return match.group(1)
+    toolchain = match.group(1).strip()
+    if toolchain == "no":  # From "no active toolchain"
+        return
+    return toolchain
 
 
 def install_toolchain(toolchain: str) -> None:
