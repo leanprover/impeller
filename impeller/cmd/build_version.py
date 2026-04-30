@@ -3,7 +3,13 @@ from typing import Any
 
 from impeller.cmd import CommandContext
 from impeller.sandbox import Sandbox
-from impeller.util import get_current_sha, now, switch_to_ref
+from impeller.util import (
+    get_active_toolchain,
+    get_current_sha,
+    get_toolchain,
+    now,
+    switch_to_ref,
+)
 
 
 def check_for_command(box: Sandbox, name: str) -> bool | None:
@@ -32,6 +38,7 @@ def test_command(box: Sandbox, name: str) -> bool:
 class CmdBuildVersion:
     ctx: CommandContext
     rev: str | None
+    override_toolchain: str | None
     build: bool | None
     test: bool | None
     lint: bool | None
@@ -40,7 +47,13 @@ class CmdBuildVersion:
         if self.rev is not None:
             switch_to_ref(self.ctx.repo, self.rev)
 
+        if self.override_toolchain is not None:
+            toolchain_file = self.ctx.repo / "lean-toolchain"
+            toolchain_file.write_text(self.override_toolchain + "\n")
+
         sha = get_current_sha(self.ctx.repo)
+        toolchain = get_toolchain(self.ctx.repo)
+        active_toolchain = get_active_toolchain(self.ctx.repo)
         check_build = check_for_command(self.ctx.box, "build")
         check_test = check_for_command(self.ctx.box, "test")
         check_lint = check_for_command(self.ctx.box, "lint")
@@ -69,6 +82,8 @@ class CmdBuildVersion:
         return {
             "version": "v0",
             "sha": sha,
+            "toolchain": toolchain,
+            "active_toolchain": active_toolchain,
             "check_build": check_build,
             "check_test": check_test,
             "check_lint": check_lint,

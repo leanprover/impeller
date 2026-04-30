@@ -98,6 +98,11 @@ def main():
         type=str,
         help="switch to this commit before building",
     )
+    bv.add_argument(
+        "--override-toolchain",
+        type=str,
+        help="override the toolchain specified in the repo",
+    )
     bv_build = bv.add_mutually_exclusive_group()
     bv_build.add_argument(
         "--build",
@@ -179,6 +184,7 @@ def main():
         data = CmdBuildVersion(
             ctx=ctx,
             rev=args.rev,
+            override_toolchain=args.override_toolchain,
             build=args.build,
             test=args.test,
             lint=args.lint,
