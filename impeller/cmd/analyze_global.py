@@ -18,11 +18,22 @@ class CmdAnalyzeGlobal:
     github_token_file: Path | None
     github_token_gh: bool
 
+    def get_git_default_branch(self) -> str | None:
+        stdout = run_stdout(
+            "git", "symbolic-ref", "refs/remotes/origin/HEAD", cwd=self.ctx.repo
+        )
+        return stdout.strip().removeprefix("refs/remotes/origin/")
+
+    def get_git_version_tags(self) -> list[str]:
+        return run_stdout("git", "tag", "--list", "v*", cwd=self.ctx.repo).splitlines()
+
     def get_git_metadata(self) -> dict[str, Any]:
-        tags = run_stdout("git", "tag", "--list", "v*", cwd=self.ctx.repo).splitlines()
+        default_branch = self.get_git_default_branch()
+        version_tags = self.get_git_version_tags()
 
         return {
-            "version_tags": tags,
+            "default_branch": default_branch,
+            "version_tags": version_tags,
         }
 
     def get_lake_metadata(self) -> dict[str, Any] | None:
