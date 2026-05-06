@@ -50,14 +50,15 @@ class BubblewrapSandbox(Sandbox):
         self._add_args("--proc", "/proc")
         self._add_args("--tmpfs", "/tmp")
 
+        self._add_ro_bind(Path("/etc/resolv.conf"))
+        self._add_ro_bind(Path("/etc/ssl"))
         if nixos:
+            self._add_ro_bind(Path("/etc/static/ssl"))
             self._add_ro_bind(Path("/nix"))
             self._add_ro_bind(Path("/run/current-system/sw"))
         else:
             self._add_ro_bind(Path("/bin"))
             self._add_ro_bind(Path("/etc/ca-certificates"))
-            self._add_ro_bind(Path("/etc/resolv.conf"))
-            self._add_ro_bind(Path("/etc/ssl"))
             self._add_ro_bind(Path("/lib"))
             self._add_ro_bind(Path("/lib64"))
             self._add_ro_bind(Path("/usr"))
