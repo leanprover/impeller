@@ -20,14 +20,20 @@ def run(
     *args: Arg, cwd: Path | None = None, check: bool = True, capture: bool = False
 ) -> subprocess.CompletedProcess[str]:
     print("$ " + " ".join(shlex.quote(str(arg)) for arg in args))
-    return subprocess.run(
+    result = subprocess.run(
         args,
         env=ENV,
         cwd=cwd,
-        check=check,
         capture_output=capture,
         text=True,
     )
+    if capture and result.returncode != 0:
+        print(f"returncode: {result.returncode}")
+        print(f"stdout:\n{result.stdout}")
+        print(f"stderr:\n{result.stderr}")
+    if check:
+        result.check_returncode()
+    return result
 
 
 def run_stdout(*args: Arg, cwd: Path | None = None) -> str:

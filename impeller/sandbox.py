@@ -85,13 +85,21 @@ class BubblewrapSandbox(Sandbox):
         self, *cmd: Arg, check: bool = True, capture: bool = False
     ) -> subprocess.CompletedProcess[str]:
         print("bwrap$ " + " ".join(shlex.quote(str(arg)) for arg in cmd))
-        return subprocess.run(
-            self._args_for_cmd(cmd=cmd),
+        result = subprocess.run(
+            self._args_for_cmd(cmd),
             cwd=self.repo,
-            check=check,
             capture_output=capture,
             text=True,
         )
+        if capture and result.returncode != 0:
+            cmdstr = " ".join(shlex.quote(str(arg)) for arg in self._args_for_cmd(cmd))
+            print(f"command: {cmdstr}")
+            print(f"returncode: {result.returncode}")
+            print(f"stdout:\n{result.stdout}")
+            print(f"stderr:\n{result.stderr}")
+        if check:
+            result.check_returncode()
+        return result
 
 
 def get_sandbox(repo: Path, bubblewrap: bool, bubblewrap_nixos: bool) -> Sandbox:
