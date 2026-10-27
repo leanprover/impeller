@@ -13,7 +13,7 @@ ENV["GIT_TERMINAL_PROMPT"] = "0"
 
 
 def now() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return datetime.datetime.now(datetime.UTC).isoformat()
 
 
 def run(
@@ -26,6 +26,7 @@ def run(
         cwd=cwd,
         capture_output=capture,
         text=True,
+        check=False,
     )
     if capture and result.returncode != 0:
         print(f"returncode: {result.returncode}")
@@ -89,7 +90,7 @@ def get_active_toolchain(repo: Path) -> str | None:
     text = run_stdout("elan", "show", cwd=repo)
     match = re.search(r"active toolchain\n----------------\n\n(\S+)", text)
     if not match:
-        raise Exception("Failed to determine active toolchain from elan show")
+        raise Exception("Failed to determine active toolchain from elan show")  # noqa: TRY002
     toolchain = match.group(1).strip()
     if toolchain == "no":  # From "no active toolchain"
         return

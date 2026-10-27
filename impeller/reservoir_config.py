@@ -1,12 +1,13 @@
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Self
+from typing import Any, Self
 
 
 def as_str(value: Any) -> str:
     if not isinstance(value, str):
-        raise ValueError(f"expected a string, got {type(value).__name__}")
+        raise TypeError(f"expected a string, got {type(value).__name__}")
     return value
 
 
@@ -23,7 +24,7 @@ def as_path(base: Path) -> Callable[[Any], str]:
 
 def as_bool(value: Any) -> bool:
     if not isinstance(value, bool):
-        raise ValueError(f"expected a boolean, got {type(value).__name__}")
+        raise TypeError(f"expected a boolean, got {type(value).__name__}")
     return value
 
 
@@ -35,7 +36,7 @@ def as_none_or[T](as_func: Callable[[Any], T], value: Any) -> T | None:
 
 def as_list_of[T](as_func: Callable[[Any], T], value: Any) -> list[T]:
     if not isinstance(value, list):
-        raise ValueError(f"expected a list, got {type(value).__name__}")
+        raise TypeError(f"expected a list, got {type(value).__name__}")
     return [as_func(item) for item in value]
 
 
@@ -59,7 +60,7 @@ class ReservoirConfig:
     def parse(cls, json_str: str, repo_dir: Path) -> Self:
         data = json.loads(json_str)
         if not isinstance(data, dict):
-            raise ValueError("expected a JSON object")
+            raise TypeError("expected a JSON object")
 
         schema_version = data.get("schemaVersion")
         if schema_version != "1.0.0":

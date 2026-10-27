@@ -21,7 +21,7 @@ def check_for_command(box: Sandbox, name: str) -> bool | None:
         if "unknown command" in result.stderr:
             return None
         return False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error checking for {name}:", e)
         return None
 
@@ -30,7 +30,7 @@ def test_command(box: Sandbox, name: str) -> bool:
     try:
         box.run("lake", name)
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error running {name}:", e)
         return False
 

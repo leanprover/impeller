@@ -90,6 +90,7 @@ class BubblewrapSandbox(Sandbox):
             cwd=self.repo,
             capture_output=capture,
             text=True,
+            check=False,
         )
         if capture and result.returncode != 0:
             cmdstr = " ".join(shlex.quote(str(arg)) for arg in self._args_for_cmd(cmd))
