@@ -1,5 +1,6 @@
 import json
 from argparse import ArgumentParser
+from importlib.metadata import version
 from pathlib import Path
 
 from impeller.cmd import CommandContext
@@ -197,4 +198,5 @@ def main():
 
     data["started"] = started
     data["finished"] = finished
+    data["app_version"] = version("impeller")
     ctx.output.write_text(json.dumps(data, indent=2))
