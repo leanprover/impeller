@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from importlib.metadata import version
 from pathlib import Path
 
 from impeller.cmd import CommandContext
@@ -13,7 +12,13 @@ from impeller.output import (
     Output,
 )
 from impeller.sandbox import get_sandbox
-from impeller.util import clone_and_prepare_repo, now, reset_workdir, switch_to_ref
+from impeller.util import (
+    clone_and_prepare_repo,
+    get_app_version,
+    now,
+    reset_workdir,
+    switch_to_ref,
+)
 
 
 def add_common_arguments(parser: ArgumentParser, output_version: str) -> None:
@@ -64,7 +69,7 @@ def main():
         "-V",
         "--version",
         action="version",
-        version=version("impeller"),
+        version=get_app_version(),
         help="show the application version and exit",
     )
 

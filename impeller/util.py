@@ -1,17 +1,19 @@
 import datetime
+import importlib.metadata
 import os
-import re
 import shlex
 import subprocess
 from os import PathLike
 from pathlib import Path
 
-from impeller.output import Toolchain
-
 type Arg = str | bytes | PathLike[str] | PathLike[bytes]
 
 ENV = os.environ.copy()
 ENV["GIT_TERMINAL_PROMPT"] = "0"
+
+
+def get_app_version() -> str:
+    return importlib.metadata.version("impeller")
 
 
 def now() -> str:
@@ -78,53 +80,3 @@ def clone_and_prepare_repo(repo: Path, url: str) -> None:
 
     # Prepare working directory
     switch_to_ref(repo, "origin/HEAD")
-
-
-def get_toolchain(repo: Path) -> str | None:
-    toolchain_file = repo / "lean-toolchain"
-    try:
-        return toolchain_file.read_text().strip()
-    except FileNotFoundError:
-        return
-
-
-def get_active_toolchain(repo: Path) -> str | None:
-    text = run_stdout("elan", "show", cwd=repo)
-    match = re.search(r"active toolchain\n----------------\n\n(\S+)", text)
-    if not match:
-        raise Exception("Failed to determine active toolchain from elan show")  # noqa: TRY002
-    toolchain = match.group(1).strip()
-    if toolchain == "no":  # From "no active toolchain"
-        return
-    return toolchain
-
-
-def get_lean_githash(repo: Path) -> str | None:
-    try:
-        return run_stdout("lean", "--githash", cwd=repo).strip()
-    except subprocess.CalledProcessError:
-        return
-
-
-def get_toolchain_metadata(repo: Path) -> Toolchain:
-    return Toolchain(
-        declared=get_toolchain(repo),
-        active=get_active_toolchain(repo),
-        githash=get_lean_githash(repo),
-    )
-
-
-def install_toolchain(toolchain: str) -> None:
-    installed = run_stdout("elan", "toolchain", "list").splitlines()
-    if toolchain in installed:
-        return
-
-    try:
-        run("elan", "toolchain", "install", toolchain)
-    except subprocess.CalledProcessError:
-        # TODO Check if error message mentions that toolchain is already installed, error otherwise?
-        return  # Probably already installed
-
-
-def get_current_sha(repo: Path) -> str:
-    return run_stdout("git", "rev-parse", "HEAD", cwd=repo).strip()

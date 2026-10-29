@@ -5,15 +5,15 @@ from pathlib import Path
 
 from github import Auth, Github
 
-from impeller.cmd import CommandContext
-from impeller.output import AnalyzeGlobalOutput, GlobalGit, GlobalGitHub, GlobalLake
-from impeller.reservoir_config import ReservoirConfig
-from impeller.util import (
+from impeller.cmd import (
+    CommandContext,
     get_toolchain,
     get_toolchain_metadata,
     install_toolchain,
-    run_stdout,
 )
+from impeller.output import AnalyzeGlobalOutput, GlobalGit, GlobalGitHub, GlobalLake
+from impeller.reservoir_config import ReservoirConfig
+from impeller.util import run_stdout
 
 
 @dataclass

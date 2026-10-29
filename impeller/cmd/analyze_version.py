@@ -4,17 +4,17 @@ from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Any
 
-from impeller.cmd import CommandContext
-from impeller.cmd.build_version import check_for_command
-from impeller.output import AnalyzeVersionOutput, VersionLake
-from impeller.reservoir_config import ReservoirConfig
-from impeller.util import (
+from impeller.cmd import (
+    CommandContext,
     get_current_sha,
     get_toolchain,
     get_toolchain_metadata,
     install_toolchain,
-    switch_to_ref,
 )
+from impeller.cmd.build_version import check_for_command
+from impeller.output import AnalyzeVersionOutput, VersionLake
+from impeller.reservoir_config import ReservoirConfig
+from impeller.util import switch_to_ref
 
 
 @dataclass

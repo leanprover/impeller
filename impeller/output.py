@@ -4,10 +4,11 @@ Each command has its own output class that can be serialized into JSON.
 See the README for how the versions work.
 """
 
-import importlib.metadata
 import json
 from dataclasses import asdict, dataclass, field
 from typing import Any, ClassVar
+
+from impeller.util import get_app_version
 
 ############
 ## Common ##
@@ -34,7 +35,7 @@ class Output:
 
     def __post_init__(self) -> None:
         self.version = self.VERSION
-        self.app_version = importlib.metadata.version("impeller")
+        self.app_version = get_app_version()
 
     def to_json(self) -> str:
         return json.dumps(asdict(self))

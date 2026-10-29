@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 
-from impeller.cmd import CommandContext
-from impeller.output import BuildStep, BuildVersionOutput
-from impeller.sandbox import Sandbox
-from impeller.util import (
+from impeller.cmd import (
+    CommandContext,
     get_current_sha,
     get_toolchain,
     get_toolchain_metadata,
     install_toolchain,
-    now,
-    switch_to_ref,
 )
+from impeller.output import BuildStep, BuildVersionOutput
+from impeller.sandbox import Sandbox
+from impeller.util import now, switch_to_ref
 
 
 def check_for_command(box: Sandbox, name: str) -> bool | None:
