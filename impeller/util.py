@@ -104,6 +104,14 @@ def get_lean_githash(repo: Path) -> str | None:
         return
 
 
+def get_toolchain_metadata(repo: Path) -> dict[str, str | None]:
+    return {
+        "declared": get_toolchain(repo),
+        "active": get_active_toolchain(repo),
+        "githash": get_lean_githash(repo),
+    }
+
+
 def install_toolchain(toolchain: str) -> None:
     installed = run_stdout("elan", "toolchain", "list").splitlines()
     if toolchain in installed:

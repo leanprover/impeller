@@ -8,7 +8,12 @@ from github import Auth, Github
 
 from impeller.cmd import CommandContext
 from impeller.reservoir_config import ReservoirConfig
-from impeller.util import get_toolchain, install_toolchain, run_stdout
+from impeller.util import (
+    get_toolchain,
+    get_toolchain_metadata,
+    install_toolchain,
+    run_stdout,
+)
 
 
 @dataclass
@@ -139,6 +144,7 @@ class CmdAnalyzeGlobal:
         if toolchain := get_toolchain(self.ctx.repo):
             install_toolchain(toolchain)
 
+        toolchain = get_toolchain_metadata(self.ctx.repo)
         git = self.get_git_metadata()
         lake = self.get_lake_metadata()
         github = self.get_github_metadata()
@@ -147,6 +153,7 @@ class CmdAnalyzeGlobal:
 
         return {
             "version": "v0",
+            "toolchain": toolchain,
             "git": git,
             "lake": lake,
             "github": github,

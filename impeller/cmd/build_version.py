@@ -4,10 +4,9 @@ from typing import Any
 from impeller.cmd import CommandContext
 from impeller.sandbox import Sandbox
 from impeller.util import (
-    get_active_toolchain,
     get_current_sha,
-    get_lean_githash,
     get_toolchain,
+    get_toolchain_metadata,
     install_toolchain,
     now,
     switch_to_ref,
@@ -55,9 +54,7 @@ class CmdBuildVersion:
             install_toolchain(toolchain)
 
         sha = get_current_sha(self.ctx.repo)
-        toolchain = get_toolchain(self.ctx.repo)
-        active_toolchain = get_active_toolchain(self.ctx.repo)
-        lean_githash = get_lean_githash(self.ctx.repo)
+        toolchain = get_toolchain_metadata(self.ctx.repo)
         check_build = check_for_command(self.ctx.box, "build")
         check_test = check_for_command(self.ctx.box, "test")
         check_lint = check_for_command(self.ctx.box, "lint")
@@ -88,8 +85,6 @@ class CmdBuildVersion:
             "version": "v0",
             "sha": sha,
             "toolchain": toolchain,
-            "active_toolchain": active_toolchain,
-            "lean_githash": lean_githash,
             "check_build": check_build,
             "check_test": check_test,
             "check_lint": check_lint,
