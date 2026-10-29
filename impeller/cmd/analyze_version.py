@@ -60,7 +60,7 @@ class CmdAnalyzeVersion:
         check_lint = check_for_command(self.ctx.box, "lint")
 
         return {
-            "version": "v0",
+            "version": "0.0",
             "sha": sha,
             "toolchain": toolchain,
             "manifest": manifest,

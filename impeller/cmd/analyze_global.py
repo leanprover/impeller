@@ -152,7 +152,7 @@ class CmdAnalyzeGlobal:
         self.resolve_version_tags(git, lake)
 
         return {
-            "version": "v0",
+            "version": "0.0",
             "toolchain": toolchain,
             "git": git,
             "lake": lake,

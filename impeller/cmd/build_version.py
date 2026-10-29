@@ -82,7 +82,7 @@ class CmdBuildVersion:
             lint = {"success": success, "started": started, "finished": finished}
 
         return {
-            "version": "v0",
+            "version": "0.0",
             "sha": sha,
             "toolchain": toolchain,
             "check_build": check_build,
