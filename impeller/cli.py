@@ -1,4 +1,3 @@
-import json
 from argparse import ArgumentParser
 from importlib.metadata import version
 from pathlib import Path
@@ -7,6 +6,12 @@ from impeller.cmd import CommandContext
 from impeller.cmd.analyze_global import CmdAnalyzeGlobal
 from impeller.cmd.analyze_version import CmdAnalyzeVersion
 from impeller.cmd.build_version import CmdBuildVersion
+from impeller.output import (
+    AnalyzeGlobalOutput,
+    AnalyzeVersionOutput,
+    BuildVersionOutput,
+    Output,
+)
 from impeller.sandbox import get_sandbox
 from impeller.util import clone_and_prepare_repo, now, reset_workdir, switch_to_ref
 
@@ -70,7 +75,7 @@ def main():
     #################################
 
     ag = subparsers.add_parser("analyze-global")
-    add_common_arguments(ag, CmdAnalyzeGlobal.VERSION)
+    add_common_arguments(ag, AnalyzeGlobalOutput.VERSION)
     ag.add_argument(
         "-m",
         "--fetch-external-metadata",
@@ -95,7 +100,7 @@ def main():
     ##################################
 
     av = subparsers.add_parser("analyze-version")
-    add_common_arguments(av, CmdAnalyzeVersion.VERSION)
+    add_common_arguments(av, AnalyzeVersionOutput.VERSION)
     av.add_argument(
         "--rev",
         type=str,
@@ -107,7 +112,7 @@ def main():
     ################################
 
     bv = subparsers.add_parser("build-version")
-    add_common_arguments(bv, CmdBuildVersion.VERSION)
+    add_common_arguments(bv, BuildVersionOutput.VERSION)
     bv.add_argument(
         "--rev",
         type=str,
@@ -182,27 +187,28 @@ def main():
         switch_to_ref(ctx.repo, "HEAD")
 
     command: str = args.command
+    output: Output
     if command == "analyze-global":
-        data = CmdAnalyzeGlobal(
+        output = CmdAnalyzeGlobal(
             ctx=ctx,
             fetch_external_metadata=args.fetch_external_metadata,
             github_token_file=args.github_token_file,
             github_token_gh=args.github_token_gh,
-        ).get_data()
+        ).get_output()
     elif command == "analyze-version":
-        data = CmdAnalyzeVersion(
+        output = CmdAnalyzeVersion(
             ctx=ctx,
             rev=args.rev,
-        ).get_data()
+        ).get_output()
     elif command == "build-version":
-        data = CmdBuildVersion(
+        output = CmdBuildVersion(
             ctx=ctx,
             rev=args.rev,
             override_toolchain=args.override_toolchain,
             build=args.build,
             test=args.test,
             lint=args.lint,
-        ).get_data()
+        ).get_output()
     else:
         raise SystemExit(f"Unknown command: {command}")
 
@@ -210,7 +216,6 @@ def main():
 
     finished = now()
 
-    data["started"] = started
-    data["finished"] = finished
-    data["app_version"] = version("impeller")
-    ctx.output.write_text(json.dumps(data, indent=2))
+    output.started = started
+    output.finished = finished
+    ctx.output.write_text(output.to_json())

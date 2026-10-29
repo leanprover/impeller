@@ -6,6 +6,7 @@ from typing import Any
 
 from impeller.cmd import CommandContext
 from impeller.cmd.build_version import check_for_command
+from impeller.output import AnalyzeVersionOutput, VersionLake
 from impeller.reservoir_config import ReservoirConfig
 from impeller.util import (
     get_current_sha,
@@ -18,8 +19,6 @@ from impeller.util import (
 
 @dataclass
 class CmdAnalyzeVersion:
-    VERSION = "0.0"
-
     ctx: CommandContext
     rev: str | None
 
@@ -30,7 +29,7 @@ class CmdAnalyzeVersion:
         except FileNotFoundError, JSONDecodeError:
             return
 
-    def get_lake_metadata(self) -> dict[str, Any] | None:
+    def get_lake_metadata(self) -> VersionLake | None:
         try:
             config_json = self.ctx.box.run_stdout("lake", "reservoir-config")
         except subprocess.CalledProcessError:
@@ -39,15 +38,15 @@ class CmdAnalyzeVersion:
         config = ReservoirConfig.parse(config_json, self.ctx.repo)
 
         # Only the version-specific fields, not the global ones
-        return {
-            "license": config.license,
-            "license_files": config.license_files,
-            "platform_independent": config.platform_independent,
-            "readme_file": config.readme_file,
-            "version": config.version,
-        }
+        return VersionLake(
+            license=config.license,
+            license_files=config.license_files,
+            platform_independent=config.platform_independent,
+            readme_file=config.readme_file,
+            version=config.version,
+        )
 
-    def get_data(self) -> dict[str, Any]:
+    def get_output(self) -> AnalyzeVersionOutput:
         if self.rev is not None:
             switch_to_ref(self.ctx.repo, self.rev)
         if toolchain := get_toolchain(self.ctx.repo):
@@ -61,13 +60,12 @@ class CmdAnalyzeVersion:
         check_test = check_for_command(self.ctx.box, "test")
         check_lint = check_for_command(self.ctx.box, "lint")
 
-        return {
-            "version": self.VERSION,
-            "sha": sha,
-            "toolchain": toolchain,
-            "manifest": manifest,
-            "lake": lake,
-            "check_build": check_build,
-            "check_test": check_test,
-            "check_lint": check_lint,
-        }
+        return AnalyzeVersionOutput(
+            sha=sha,
+            toolchain=toolchain,
+            manifest=manifest,
+            lake=lake,
+            check_build=check_build,
+            check_test=check_test,
+            check_lint=check_lint,
+        )

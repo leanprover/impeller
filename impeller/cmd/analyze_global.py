@@ -2,11 +2,11 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from github import Auth, Github
 
 from impeller.cmd import CommandContext
+from impeller.output import AnalyzeGlobalOutput, GlobalGit, GlobalGitHub, GlobalLake
 from impeller.reservoir_config import ReservoirConfig
 from impeller.util import (
     get_toolchain,
@@ -18,8 +18,6 @@ from impeller.util import (
 
 @dataclass
 class CmdAnalyzeGlobal:
-    VERSION = "0.0"
-
     ctx: CommandContext
     fetch_external_metadata: bool
     github_token_file: Path | None
@@ -36,17 +34,18 @@ class CmdAnalyzeGlobal:
     def get_git_version_tags(self) -> list[str]:
         return run_stdout("git", "tag", "--list", "v*", cwd=self.ctx.repo).splitlines()
 
-    def get_git_metadata(self) -> dict[str, Any]:
+    def get_git_metadata(self) -> GlobalGit:
         default_branch, default_branch_sha = self.get_git_default_branch()
         version_tags = self.get_git_version_tags()
 
-        return {
-            "default_branch": default_branch,
-            "default_branch_sha": default_branch_sha,
-            "version_tags": version_tags,
-        }
+        return GlobalGit(
+            default_branch=default_branch,
+            default_branch_sha=default_branch_sha,
+            version_tags=version_tags,
+            tag_shas={},
+        )
 
-    def get_lake_metadata(self) -> dict[str, Any] | None:
+    def get_lake_metadata(self) -> GlobalLake | None:
         try:
             config_json = self.ctx.box.run_stdout("lake", "reservoir-config")
         except subprocess.CalledProcessError:
@@ -55,23 +54,23 @@ class CmdAnalyzeGlobal:
         config = ReservoirConfig.parse(config_json, self.ctx.repo)
 
         # Only the global fields, not the version-specific ones
-        return {
-            "description": config.description,
-            "do_index": config.do_index,
-            "homepage": config.homepage,
-            "keywords": config.keywords,
-            "name": config.name,
-            "version_tags": config.version_tags,
-        }
+        return GlobalLake(
+            description=config.description,
+            do_index=config.do_index,
+            homepage=config.homepage,
+            keywords=config.keywords,
+            name=config.name,
+            version_tags=config.version_tags,
+        )
 
     def resolve_version_tags(
-        self, git: dict[str, Any], lake: dict[str, Any] | None
+        self, tag_shas: dict[str, str], git: GlobalGit, lake: GlobalLake | None
     ) -> None:
         all_tags = set[str]()
-        all_tags.update(git["version_tags"])
-        all_tags.update((lake or {}).get("version_tags", []))
+        all_tags.update(git.version_tags)
+        if lake:
+            all_tags.update(lake.version_tags)
 
-        tag_shas: dict[str, str] = {}
         for tag in sorted(all_tags):
             try:
                 # https://stackoverflow.com/a/16818141
@@ -81,8 +80,6 @@ class CmdAnalyzeGlobal:
                 tag_shas[tag] = stdout.strip()
             except subprocess.CalledProcessError:
                 pass
-
-        git["tag_shas"] = tag_shas
 
     def get_github_token(self) -> str | None:
         if self.github_token_gh:
@@ -103,7 +100,7 @@ class CmdAnalyzeGlobal:
         fullname: str = match.group(1)
         return fullname
 
-    def get_github_metadata(self) -> dict[str, Any] | None:
+    def get_github_metadata(self) -> GlobalGitHub | None:
         if not self.fetch_external_metadata:
             return
 
@@ -120,29 +117,29 @@ class CmdAnalyzeGlobal:
 
         # A reasonable subset of the fields returned by the GitHub API
         # https://docs.github.com/en/rest/repos/repos?apiVersion=2026-03-10#get-a-repository
-        return {
-            "name": r.name,
-            "full_name": r.full_name,
-            "owner": r.owner.login,
-            "description": r.description,
-            "fork": r.fork,
-            "html_url": r.html_url,
-            "clone_url": r.clone_url,
-            "homepage": r.homepage,
-            "forks_count": r.forks_count,
-            "stargazers_count": r.stargazers_count,
-            "subscribers_count": r.subscribers_count,
-            "default_branch": r.default_branch,
-            "topics": r.topics,
-            "archived": r.archived,
-            "disabled": r.disabled,
-            "pushed_at": r.pushed_at.isoformat(),
-            "created_at": r.created_at.isoformat(),
-            "updated_at": r.updated_at.isoformat(),
-            "license_spdx_id": r.license.spdx_id if r.license else None,
-        }
+        return GlobalGitHub(
+            name=r.name,
+            full_name=r.full_name,
+            owner=r.owner.login,
+            description=r.description,
+            fork=r.fork,
+            html_url=r.html_url,
+            clone_url=r.clone_url,
+            homepage=r.homepage,
+            forks_count=r.forks_count,
+            stargazers_count=r.stargazers_count,
+            subscribers_count=r.subscribers_count,
+            default_branch=r.default_branch,
+            topics=r.topics,
+            archived=r.archived,
+            disabled=r.disabled,
+            pushed_at=r.pushed_at.isoformat(),
+            created_at=r.created_at.isoformat(),
+            updated_at=r.updated_at.isoformat(),
+            license_spdx_id=r.license.spdx_id if r.license else None,
+        )
 
-    def get_data(self) -> dict[str, Any]:
+    def get_output(self) -> AnalyzeGlobalOutput:
         if toolchain := get_toolchain(self.ctx.repo):
             install_toolchain(toolchain)
 
@@ -150,13 +147,11 @@ class CmdAnalyzeGlobal:
         git = self.get_git_metadata()
         lake = self.get_lake_metadata()
         github = self.get_github_metadata()
+        self.resolve_version_tags(git.tag_shas, git, lake)
 
-        self.resolve_version_tags(git, lake)
-
-        return {
-            "version": self.VERSION,
-            "toolchain": toolchain,
-            "git": git,
-            "lake": lake,
-            "github": github,
-        }
+        return AnalyzeGlobalOutput(
+            toolchain=toolchain,
+            git=git,
+            lake=lake,
+            github=github,
+        )

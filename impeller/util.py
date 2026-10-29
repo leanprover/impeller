@@ -6,6 +6,8 @@ import subprocess
 from os import PathLike
 from pathlib import Path
 
+from impeller.output import Toolchain
+
 type Arg = str | bytes | PathLike[str] | PathLike[bytes]
 
 ENV = os.environ.copy()
@@ -104,12 +106,12 @@ def get_lean_githash(repo: Path) -> str | None:
         return
 
 
-def get_toolchain_metadata(repo: Path) -> dict[str, str | None]:
-    return {
-        "declared": get_toolchain(repo),
-        "active": get_active_toolchain(repo),
-        "githash": get_lean_githash(repo),
-    }
+def get_toolchain_metadata(repo: Path) -> Toolchain:
+    return Toolchain(
+        declared=get_toolchain(repo),
+        active=get_active_toolchain(repo),
+        githash=get_lean_githash(repo),
+    )
 
 
 def install_toolchain(toolchain: str) -> None:

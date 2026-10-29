@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Any
 
 from impeller.cmd import CommandContext
+from impeller.output import BuildStep, BuildVersionOutput
 from impeller.sandbox import Sandbox
 from impeller.util import (
     get_current_sha,
@@ -37,8 +37,6 @@ def test_command(box: Sandbox, name: str) -> bool:
 
 @dataclass
 class CmdBuildVersion:
-    VERSION = "0.0"
-
     ctx: CommandContext
     rev: str | None
     override_toolchain: str | None
@@ -46,7 +44,7 @@ class CmdBuildVersion:
     test: bool | None
     lint: bool | None
 
-    def get_data(self) -> dict[str, Any]:
+    def get_output(self) -> BuildVersionOutput:
         if self.rev is not None:
             switch_to_ref(self.ctx.repo, self.rev)
         if self.override_toolchain is not None:
@@ -67,30 +65,29 @@ class CmdBuildVersion:
             self.ctx.box.run("lake", "exe", "cache", "get", check=False)
             success = test_command(self.ctx.box, "build")
             finished = now()
-            build = {"success": success, "started": started, "finished": finished}
+            build = BuildStep(success=success, started=started, finished=finished)
 
         test = None
         if self.test is True or (self.test is None and check_test is not False):
             started = now()
             success = test_command(self.ctx.box, "test")
             finished = now()
-            test = {"success": success, "started": started, "finished": finished}
+            test = BuildStep(success=success, started=started, finished=finished)
 
         lint = None
         if self.lint is True or (self.lint is None and check_lint is not False):
             started = now()
             success = test_command(self.ctx.box, "lint")
             finished = now()
-            lint = {"success": success, "started": started, "finished": finished}
+            lint = BuildStep(success=success, started=started, finished=finished)
 
-        return {
-            "version": self.VERSION,
-            "sha": sha,
-            "toolchain": toolchain,
-            "check_build": check_build,
-            "check_test": check_test,
-            "check_lint": check_lint,
-            "build": build,
-            "test": test,
-            "lint": lint,
-        }
+        return BuildVersionOutput(
+            sha=sha,
+            toolchain=toolchain,
+            check_build=check_build,
+            check_test=check_test,
+            check_lint=check_lint,
+            build=build,
+            test=test,
+            lint=lint,
+        )

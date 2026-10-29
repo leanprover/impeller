@@ -11,7 +11,9 @@ Impeller has three main commands for extracting information from a lake package:
 - `build-version`: Attempt to build, test, and lint a specific version of a lake
   package.
 
-For more information, see `impeller --help` and `impeller <command> --help`.
+For more information, see `impeller --help` and `impeller <command> --help`. The
+output formats of the different commands are modeled as dataclasses and
+documented in [`output.py`](impeller/output.py).
 
 ## Versioning
 
