@@ -18,6 +18,8 @@ from impeller.util import (
 
 @dataclass
 class CmdAnalyzeVersion:
+    VERSION = "0.0"
+
     ctx: CommandContext
     rev: str | None
 
@@ -60,7 +62,7 @@ class CmdAnalyzeVersion:
         check_lint = check_for_command(self.ctx.box, "lint")
 
         return {
-            "version": "0.0",
+            "version": self.VERSION,
             "sha": sha,
             "toolchain": toolchain,
             "manifest": manifest,

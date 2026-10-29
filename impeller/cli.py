@@ -11,7 +11,14 @@ from impeller.sandbox import get_sandbox
 from impeller.util import clone_and_prepare_repo, now, reset_workdir, switch_to_ref
 
 
-def add_common_arguments(parser: ArgumentParser) -> None:
+def add_common_arguments(parser: ArgumentParser, output_version: str) -> None:
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=output_version,
+        help="show the command's output version and exit",
+    )
     parser.add_argument(
         "-r",
         "--repo",
@@ -48,6 +55,13 @@ def add_common_arguments(parser: ArgumentParser) -> None:
 
 def main():
     parser = ArgumentParser(prog="impeller")
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=version("impeller"),
+        help="show the application version and exit",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -56,7 +70,7 @@ def main():
     #################################
 
     ag = subparsers.add_parser("analyze-global")
-    add_common_arguments(ag)
+    add_common_arguments(ag, CmdAnalyzeGlobal.VERSION)
     ag.add_argument(
         "-m",
         "--fetch-external-metadata",
@@ -81,7 +95,7 @@ def main():
     ##################################
 
     av = subparsers.add_parser("analyze-version")
-    add_common_arguments(av)
+    add_common_arguments(av, CmdAnalyzeVersion.VERSION)
     av.add_argument(
         "--rev",
         type=str,
@@ -93,7 +107,7 @@ def main():
     ################################
 
     bv = subparsers.add_parser("build-version")
-    add_common_arguments(bv)
+    add_common_arguments(bv, CmdBuildVersion.VERSION)
     bv.add_argument(
         "--rev",
         type=str,

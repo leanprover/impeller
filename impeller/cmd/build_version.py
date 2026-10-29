@@ -37,6 +37,8 @@ def test_command(box: Sandbox, name: str) -> bool:
 
 @dataclass
 class CmdBuildVersion:
+    VERSION = "0.0"
+
     ctx: CommandContext
     rev: str | None
     override_toolchain: str | None
@@ -82,7 +84,7 @@ class CmdBuildVersion:
             lint = {"success": success, "started": started, "finished": finished}
 
         return {
-            "version": "0.0",
+            "version": self.VERSION,
             "sha": sha,
             "toolchain": toolchain,
             "check_build": check_build,

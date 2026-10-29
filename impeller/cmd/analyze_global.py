@@ -18,6 +18,8 @@ from impeller.util import (
 
 @dataclass
 class CmdAnalyzeGlobal:
+    VERSION = "0.0"
+
     ctx: CommandContext
     fetch_external_metadata: bool
     github_token_file: Path | None
@@ -152,7 +154,7 @@ class CmdAnalyzeGlobal:
         self.resolve_version_tags(git, lake)
 
         return {
-            "version": "0.0",
+            "version": self.VERSION,
             "toolchain": toolchain,
             "git": git,
             "lake": lake,
