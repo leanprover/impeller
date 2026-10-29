@@ -35,18 +35,18 @@ def get_active_toolchain(repo: Path) -> str | None:
     return toolchain
 
 
-def get_lean_githash(repo: Path) -> str | None:
+def get_lean_githash(box: Sandbox) -> str | None:
     try:
-        return run_stdout("lean", "--githash", cwd=repo).strip()
+        return box.run_stdout("lean", "--githash").strip()
     except subprocess.CalledProcessError:
         return
 
 
-def get_toolchain_metadata(repo: Path) -> Toolchain:
+def get_toolchain_metadata(ctx: CommandContext) -> Toolchain:
     return Toolchain(
-        declared=get_toolchain(repo),
-        active=get_active_toolchain(repo),
-        githash=get_lean_githash(repo),
+        declared=get_toolchain(ctx.repo),
+        active=get_active_toolchain(ctx.repo),
+        githash=get_lean_githash(ctx.box),
     )
 
 

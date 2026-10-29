@@ -53,7 +53,7 @@ class CmdAnalyzeVersion:
             install_toolchain(toolchain)
 
         sha = get_current_sha(self.ctx.repo)
-        toolchain = get_toolchain_metadata(self.ctx.repo)
+        toolchain = get_toolchain_metadata(self.ctx)
         manifest = self.get_manifest()
         lake = self.get_lake_metadata()
         check_build = check_for_command(self.ctx.box, "build")

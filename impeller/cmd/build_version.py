@@ -53,7 +53,7 @@ class CmdBuildVersion:
             install_toolchain(toolchain)
 
         sha = get_current_sha(self.ctx.repo)
-        toolchain = get_toolchain_metadata(self.ctx.repo)
+        toolchain = get_toolchain_metadata(self.ctx)
         check_build = check_for_command(self.ctx.box, "build")
         check_test = check_for_command(self.ctx.box, "test")
         check_lint = check_for_command(self.ctx.box, "lint")

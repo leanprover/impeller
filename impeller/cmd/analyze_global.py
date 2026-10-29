@@ -143,7 +143,7 @@ class CmdAnalyzeGlobal:
         if toolchain := get_toolchain(self.ctx.repo):
             install_toolchain(toolchain)
 
-        toolchain = get_toolchain_metadata(self.ctx.repo)
+        toolchain = get_toolchain_metadata(self.ctx)
         git = self.get_git_metadata()
         lake = self.get_lake_metadata()
         github = self.get_github_metadata()
