@@ -97,6 +97,13 @@ def get_active_toolchain(repo: Path) -> str | None:
     return toolchain
 
 
+def get_lean_githash(repo: Path) -> str | None:
+    try:
+        return run_stdout("lean", "--githash", cwd=repo).strip()
+    except subprocess.CalledProcessError:
+        return
+
+
 def install_toolchain(toolchain: str) -> None:
     installed = run_stdout("elan", "toolchain", "list").splitlines()
     if toolchain in installed:
