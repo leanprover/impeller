@@ -245,7 +245,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pygithub", specifier = ">=2.10.0" }]
+requires-dist = [{ name = "pygithub", specifier = ">=2.6.0" }]
 
 [[package]]
 name = "pycparser"
